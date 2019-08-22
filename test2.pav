@@ -1,0 +1,15 @@
+  void main () {
+  // Demonstrate various statements
+  // (not supposed to do anything useful!)
+    int i = 1;
+    while (i < 10) {
+      int k = 1;
+      while (k < i) {
+        write(k);
+        continue; k = k - 1;
+       }
+      i++;
+    }
+    int k = 123;
+    write(k);
+  }

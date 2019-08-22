@@ -1,0 +1,148 @@
+using Library;
+
+COMPILER Calc $NC
+//  Put your names and a description here
+
+static int ToInt(bool b) {
+// return 0 or 1 according as b is false or true
+  return b ? 1 : 0;
+} // ToInt
+
+static bool ToBool(int i) {
+// return false or true according as i is 0 or 1
+  return i == 0 ? false : true;
+} // ToBool
+
+CHARACTERS
+  digit      = "0123456789" .
+  letter     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" .
+
+TOKENS
+  number     = digit { digit } .
+  identifier = letter { letter | digit } .
+
+IGNORE CHR(0) .. CHR(31)
+
+PRODUCTIONS
+  Calc
+  =
+  { Print
+  | Assignment
+  } "quit"
+  .
+
+  Assignment
+  =
+  Variable
+  "="
+  Expression
+  SYNC ";"
+  .
+
+  Print
+  =
+  "print"
+  Expression
+  { WEAK ","
+    Expression
+  }
+  SYNC ";"
+  .
+
+  Expression
+  =
+  AndExp
+  { "||"
+    AndExp
+  } .
+
+  AndExp
+  =
+  EqlExp
+  { "&&"
+    EqlExp
+  } .
+
+  EqlExp
+  =
+  RelExp
+  { EqlOp
+    RelExp
+  } .
+
+  RelExp
+  =
+  AddExp
+  [ RelOp
+    AddExp
+  ] .
+
+  AddExp
+  =
+  MultExp
+  { AddOp
+    MultExp
+  } .
+
+  MultExp
+  =
+  UnaryExp
+  { MulOp
+    UnaryExp
+  } .
+
+  UnaryExp
+  =   Factor
+    | "+" UnaryExp
+    | "-" UnaryExp
+    | "!" UnaryExp
+  .
+
+  Factor
+  =
+      Variable
+    | Number
+    | "true"
+    | "false"
+    | "(" Expression
+      ")"
+  .
+
+  Variable
+  =
+  identifier
+  .
+
+  Number
+  =
+  number
+  .
+
+  MulOp
+  =
+      "*"
+    | "/"
+    | "%"
+    .
+
+  AddOp
+  =
+      "+"
+    | "-"
+  .
+
+  RelOp
+  =
+      "<"
+    | "<="
+    | ">"
+    | ">="
+  .
+
+  EqlOp
+  =
+      "=="
+    | "!="
+  .
+
+END Calc.

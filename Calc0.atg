@@ -1,0 +1,35 @@
+COMPILER Calc0 $NC
+//  Put your names and a description here
+
+CHARACTERS
+  digit      = "0123456789" .
+  letter     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" .
+
+TOKENS
+  number     = digit { digit } .
+  identifier = letter { letter | digit } .
+
+IGNORE CHR(0) .. CHR(31)
+
+PRODUCTIONS
+  Calc0      = { Print | Assignment } "quit" .
+
+  Assignment = Variable "=" Expression SYNC ";" .
+  Print      = "print" Expression { WEAK ","  Expression } SYNC ";" .
+
+  Expression = AndExp { "||" AndExp } .
+  AndExp     = EqlExp { "&&" EqlExp } .
+  EqlExp     = RelExp { EqlOp RelExp } .
+  RelExp     = AddExp [ RelOp AddExp ] .
+  AddExp     = MultExp { AddOp MultExp } .
+  MultExp    = UnaryExp { MulOp UnaryExp } .
+  UnaryExp   = Factor | "+" UnaryExp | "-" UnaryExp | "!" UnaryExp .
+  Factor     = Variable | Number | "true" | "false" | "(" Expression ")" .
+  Variable   = identifier .
+  Number     = number .
+  MulOp      = "*" | "/" | "%"  .
+  AddOp      = "+" | "-" .
+  RelOp      = "<" | "<=" | ">" | ">=" .
+  EqlOp      = "==" | "!=" .
+
+END Calc0.

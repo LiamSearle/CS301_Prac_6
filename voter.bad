@@ -1,0 +1,18 @@
+void main () {
+  const VotingAge = 18;
+  int Eligible, Age Total;
+  int[] Eligible = new int[500];
+  Total = 0;
+  Eligible = 0;
+  read(Age);
+  while (Age > 0) {
+    if (Age > VotingAge ) {
+      Voters[Eligible] = Age
+      Eligible = Eligible + - 1;
+      Total = Total + Voters[Eligible - 1];
+    }
+    read(Age);
+  }
+  write(Eligible, " voters.  Average age = , Total / Eligible);
+  /* incomplete comment * /
+}

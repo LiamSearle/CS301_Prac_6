@@ -1,0 +1,58 @@
+using Library;
+
+COMPILER TokenTests $CN
+/* Test scanner construction and token definitions - C# version
+   The generated program will read a file of words, numbers, strings etc
+   and report on what characters have been scanned to give a token,
+   and what that token is (as a magic number).  Useful for experimenting
+   when faced with the problem of defining awkward tokens!
+
+   P.D. Terry, Rhodes University, 2016 */
+
+/* Some code to be added to the parser class */
+
+  static void Display(Token token) {
+  // Simply reflect the fields of token to the standard outpul
+    IO.Write("Line ");
+    IO.Write(token.line, 4);
+    IO.Write(" Column");
+    IO.Write(token.col, 4);
+    IO.Write(":  Kind");
+    IO.Write(token.kind, 3);
+    IO.WriteLine("  Val |" + token.val.Trim() + "|");
+  } // Display
+
+CHARACTERS  /* You may like to introduce others */
+
+  sp         = CHR(32) .
+  backslash  = CHR(92) .
+  control    = CHR(0) .. CHR(31) .
+  letter     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" .
+  digit      = "0123456789" .
+  stringCh   = ANY - '"' - control - backslash .
+  charCh     = ANY - "'" - control - backslash .
+  printable  = ANY - control .
+
+TOKENS      /* You may like to introduce others */
+
+  ident      = letter { letter | digit } .
+  integer    = digit { digit } .
+  double     = digit { digit } "." digit { digit }  .
+  string     = '"' { stringCh | backslash printable } '"' .
+  char       = "'" ( charCh   | backslash printable ) "'" .
+
+IGNORE control
+
+PRODUCTIONS
+
+   TokenTests
+   = { (    ANY
+         |  "."
+         |  ".."
+         |  "ANY"
+       )                     (. Display(token); .)
+     } EOF                   (. Display(token); .)
+     .
+
+END TokenTests.
+

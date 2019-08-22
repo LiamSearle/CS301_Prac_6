@@ -1,0 +1,27 @@
+  void main () {
+  // Demonstrate various statements
+  // (not supposed to do anything useful!)
+    int age;
+    bool beenKissed;
+    read("How old are you, and have you been kissed? ", age, beenKissed);
+    if (age == 16) {
+      write("sweet sixteen");
+      if (! beenKissed) write(" and never been kissed");
+    }
+    else
+      if (age == 21) {
+        write("party time!");
+        int headache = 0, strain = 0;
+        for (int beers = 20; beers > 0; beers--) {
+          strain++; headache++;
+          if (strain % 8 == 0) {
+            write("That\'s better"); strain = 0;
+          }
+        }
+      }
+    else if ((age > 21) && (age < 40)) write("over the hill, bru");
+    elsif (age > 70)
+      write("take a new lover");
+    else
+      write("boring");
+  } // main
