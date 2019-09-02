@@ -35,13 +35,13 @@ COMMENTS FROM "/*" TO "*/"
 IGNORE CHR(9) .. CHR(13)
 
 PRODUCTIONS
-  Parva             = "void" Ident "(" ")" Block .
+  Parva             = "void" Ident <out bool dec> "(" ")" Block .
   Block             = "{" { Statement } "}" .
 
 /* The options in Statement are easily extended to handle the new forms */
 
-  Statement         =    Block
-                       | ConstDeclarations | VarDeclarations
+  Statement <out bool dec>  =    Block
+                       | ConstDeclarations | VarDeclarations <out dec>
                        | Assignments
                        | IfStatement       | WhileStatement
                        | ReturnStatement   | HaltStatement
@@ -49,14 +49,14 @@ PRODUCTIONS
                        | ForStatement      | BreakStatement
                        | ContinueStatement | DoWhileStatement
                        | ";" .
-
+					   
 /* Declarations remain the same as before */
 
   ConstDeclarations = "const" OneConst { "," OneConst } ";" .
-  OneConst          = Ident "=" Constant .
+  OneConst          = Ident <out bool dec> "=" Constant .
   Constant          =   number | charLit
                       | "true" | "false" | "null" .
-  VarDeclarations   = Type OneVar { "," OneVar } ";" .
+  VarDeclarations<out bool dec> = Type OneVar<out  dec> { "," OneVar<out  dec>  } ";" (. dec = true; .)  .
 
 /* We can introduce the extra form of asssignment operators as tokens as follows.  Note
    theta we do not want to use, say "+" "=" because they cannot contain spaces. */
@@ -66,7 +66,7 @@ PRODUCTIONS
 /* Don't be tempted to use the CompoundAssignOp in the declaration of OneVar or OneConst.
    It cannot have a proper semantic meaning if you do.  All you can use is "=" */
 
-  OneVar            = Ident [ "=" Expression ] .
+  OneVar<out bool dec>  = Ident <out bool dec> [ "=" Expression ] .
 
 /* One way of introducing the extended form of assignment statements might be to define
 
@@ -90,7 +90,7 @@ PRODUCTIONS
                         | "--"
                       ) ";" .
 
-  Designator        = Ident [ "[" Expression "]" ] .
+  Designator  = Ident <out bool dec> [ "[" Expression "]" ]  .
 
 /* The if-then-elsif-else construction is most easily described as follows. Although
   this is not LL(1), this works admirably - it is simply the well-known dangling
@@ -121,12 +121,12 @@ PRODUCTIONS
 /* a C# inspired ForStatement might look like this */
 
   ForStatement      = "for" "("
-                        [ [ BasicType ] Ident "=" Expression ] ";"
+                        [ [ BasicType ] Ident <out bool dec> "=" Expression ] ";"
                         [ Condition ] ";"
                         [ Step ]
                       ")" Statement .
 
-  Step              =  Ident ( "++" | "--" | ( "=" | CompoundAssignOp ) Expression ) .
+  Step              =  Ident <out bool dec> ( "++" | "--" | ( "=" | CompoundAssignOp ) Expression ) .
 
   ReadStatement     = "read" "(" ReadElement { "," ReadElement } ")" ";" .
   ReadElement       = stringLit | Designator .
@@ -149,7 +149,7 @@ PRODUCTIONS
 
   RelOp             = "==" | "!=" | "<" | "<=" | ">" | ">=" .
 
-  Ident             = identifier .
+  Ident  <out bool dec> = identifier (. Table.AddRef(token.val, dec, token.line); .) .
 
 END Parva.
 
