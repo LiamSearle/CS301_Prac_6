@@ -1,4 +1,8 @@
+using System.IO;
 COMPILER Parva $CN
+
+static final bool dec = false;
+
 /* Parva level 1 grammar  - Coco/R for C# (EBNF)
    P.D. Terry, Rhodes University, 2016
    Extended Grammar similar to that done in Prac 3  */
@@ -12,6 +16,7 @@ CHARACTERS
   stringCh   = ANY - '"' - control - backslash .
   charCh     = ANY - "'" - control - backslash .
   printable  = ANY - control .
+
 
 TOKENS
 
@@ -35,7 +40,8 @@ COMMENTS FROM "/*" TO "*/"
 IGNORE CHR(9) .. CHR(13)
 
 PRODUCTIONS
-  Parva             =   (. bool dec; .)
+
+  Parva             =   (. dec; .)
 						"void" Ident<out dec> "(" ")" Block .
   Block             = "{" { Statement } "}" .
 
@@ -54,7 +60,7 @@ PRODUCTIONS
 /* Declarations remain the same as before */
 
   ConstDeclarations = "const" OneConst { "," OneConst } ";" .
-  OneConst          =   (.  bool dec = true; .)
+  OneConst          =   (.   dec = true; .)
 					    Ident<out dec> "=" Constant .
   Constant          =   number | charLit
                       | "true" | "false" | "null" .
@@ -68,7 +74,7 @@ PRODUCTIONS
 /* Don't be tempted to use the CompoundAssignOp in the declaration of OneVar or OneConst.
    It cannot have a proper semantic meaning if you do.  All you can use is "=" */
 
-  OneVar            =   (. bool dec = true; .)
+  OneVar            =   (.  dec = true; .)
 						Ident<out dec> [ "=" Expression ] .
 
 /* One way of introducing the extended form of assignment statements might be to define
@@ -93,7 +99,7 @@ PRODUCTIONS
                         | "--"
                       ) ";" .
 
-  Designator        = 	(. bool dec = false; .)
+  Designator        = 	(.  dec = false; .)
 						Ident<out dec> [ "[" Expression "]" ] .
 
 /* The if-then-elsif-else construction is most easily described as follows. Although
@@ -124,14 +130,14 @@ PRODUCTIONS
 
 /* a C# inspired ForStatement might look like this */
 
-  ForStatement      = (. bool dec = true; .)
+  ForStatement      = (.  dec = true; .)
 					  "for" "("
                         [ [ BasicType ] Ident<out dec> "=" Expression ] ";"
                         [ Condition ] ";"
                         [ Step ]
                       ")" Statement .
 
-  Step              =   (. bool dec = false; .)
+  Step              =   (.  dec = false; .)
 						Ident<out dec> ( "++" | "--" | ( "=" | CompoundAssignOp ) Expression ) .
 
   ReadStatement     = "read" "(" ReadElement { "," ReadElement } ")" ";" .
