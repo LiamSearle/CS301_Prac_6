@@ -58,10 +58,9 @@ namespace Parva {
                 display += "-" + x.refs[0] + "\t"; 
                 for (int i = 1; i < x.refs.Count; i++)
                     display += x.refs[i] + "\t";
-                Console.WriteLine(display);
-                display = "";
-                display += "\n";
+				display += "\n\n";
             }
+			Console.WriteLine(display);
             
     } // Table.PrintTable
 
