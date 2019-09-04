@@ -1,8 +1,4 @@
-using System.IO;
 COMPILER Parva $CN
-
-static final bool dec = false;
-
 /* Parva level 1 grammar  - Coco/R for C# (EBNF)
    P.D. Terry, Rhodes University, 2016
    Extended Grammar similar to that done in Prac 3  */
@@ -16,7 +12,6 @@ CHARACTERS
   stringCh   = ANY - '"' - control - backslash .
   charCh     = ANY - "'" - control - backslash .
   printable  = ANY - control .
-
 
 TOKENS
 
@@ -40,9 +35,7 @@ COMMENTS FROM "/*" TO "*/"
 IGNORE CHR(9) .. CHR(13)
 
 PRODUCTIONS
-
-  Parva             =   (. dec; .)
-						"void" Ident<out dec> "(" ")" Block .
+  Parva             = "void" Ident "(" ")" Block (. Console.Write("hello, mate\n"); .) .
   Block             = "{" { Statement } "}" .
 
 /* The options in Statement are easily extended to handle the new forms */
@@ -60,8 +53,7 @@ PRODUCTIONS
 /* Declarations remain the same as before */
 
   ConstDeclarations = "const" OneConst { "," OneConst } ";" .
-  OneConst          =   (.   dec = true; .)
-					    Ident<out dec> "=" Constant .
+  OneConst          = Ident "=" Constant .
   Constant          =   number | charLit
                       | "true" | "false" | "null" .
   VarDeclarations   = Type OneVar { "," OneVar } ";" .
@@ -74,8 +66,7 @@ PRODUCTIONS
 /* Don't be tempted to use the CompoundAssignOp in the declaration of OneVar or OneConst.
    It cannot have a proper semantic meaning if you do.  All you can use is "=" */
 
-  OneVar            =   (.  dec = true; .)
-						Ident<out dec> [ "=" Expression ] .
+  OneVar            = Ident [ "=" Expression ] .
 
 /* One way of introducing the extended form of assignment statements might be to define
 
@@ -99,8 +90,7 @@ PRODUCTIONS
                         | "--"
                       ) ";" .
 
-  Designator        = 	(.  dec = false; .)
-						Ident<out dec> [ "[" Expression "]" ] .
+  Designator        = Ident [ "[" Expression "]" ] .
 
 /* The if-then-elsif-else construction is most easily described as follows. Although
   this is not LL(1), this works admirably - it is simply the well-known dangling
@@ -130,15 +120,13 @@ PRODUCTIONS
 
 /* a C# inspired ForStatement might look like this */
 
-  ForStatement      = (.  dec = true; .)
-					  "for" "("
-                        [ [ BasicType ] Ident<out dec> "=" Expression ] ";"
+  ForStatement      = "for" "("
+                        [ [ BasicType ] Ident "=" Expression ] ";"
                         [ Condition ] ";"
                         [ Step ]
                       ")" Statement .
 
-  Step              =   (.  dec = false; .)
-						Ident<out dec> ( "++" | "--" | ( "=" | CompoundAssignOp ) Expression ) .
+  Step              =  Ident ( "++" | "--" | ( "=" | CompoundAssignOp ) Expression ) .
 
   ReadStatement     = "read" "(" ReadElement { "," ReadElement } ")" ";" .
   ReadElement       = stringLit | Designator .
@@ -161,7 +149,7 @@ PRODUCTIONS
 
   RelOp             = "==" | "!=" | "<" | "<=" | ">" | ">=" .
 
-  Ident<out bool dec> = identifier  (. Table.AddRef(token.val,  dec, token.line); .) .
+  Ident             = identifier (. Console.Write("bye\n"); .) .
 
 END Parva.
 
