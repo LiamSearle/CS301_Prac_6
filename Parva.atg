@@ -1,6 +1,6 @@
 COMPILER Parva $CN
 /* Parva level 1 grammar  - Coco/R for C# (EBNF)
-   P.D. Terry, Rhodes University, 2016
+   Matthew Lewis, Liam Searle, Makungu Chansa (Absent)
    Extended Grammar similar to that done in Prac 3  */
 
 CHARACTERS

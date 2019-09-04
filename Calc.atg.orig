@@ -1,8 +1,7 @@
 using Library;
 
 COMPILER Calc $NC
-//  Liam Searle, Matthew Lewis, Makungu Chansa (:?)
-//  Attributed calc grammar 
+//  Put your names and a description here
 
 static int ToInt(bool b) {
 // return 0 or 1 according as b is false or true
@@ -14,12 +13,6 @@ static bool ToBool(int i) {
   return i == 0 ? false : true;
 } // ToBool
 
-static int Add(int a, int b) {
-	return a + b;
-}
-
-
-
 CHARACTERS
   digit      = "0123456789" .
   letter     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" .
@@ -30,8 +23,8 @@ TOKENS
 
 IGNORE CHR(0) .. CHR(31)
 
-PRODUCTIONS   
-  Calc 				(. .)
+PRODUCTIONS
+  Calc
   =
   { Print
   | Assignment
@@ -108,9 +101,9 @@ PRODUCTIONS
   Factor
   =
       Variable
-    | Number			(.  .)
-    | "true"			(.  .)
-    | "false"			(.  .)
+    | Number
+    | "true"
+    | "false"
     | "(" Expression
       ")"
   .
