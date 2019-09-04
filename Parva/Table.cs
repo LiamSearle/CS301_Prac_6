@@ -2,6 +2,7 @@
 // P.D. Terry, Rhodes University, 2016
 
 using Library;
+using System;
 using System.Collections.Generic;
 
 namespace Parva {
@@ -17,7 +18,7 @@ namespace Parva {
 
   class Table {
     static List<Entry> theList = new List<Entry>();
-	bool dec = false; // global variable that can be manipulated in the Parva grammar.
+	public static bool dec = false; // global variable that can be manipulated in the Parva grammar.
 	
     public static void ClearTable() {
             // Clears cross-reference table
@@ -27,7 +28,7 @@ namespace Parva {
     public static void AddRef(string name, bool declared, int lineRef) {
             // Enters name if not already there, and then adds another line reference (negative
             // if at a declaration point in the original source program)
-            if (!declared) 
+            if (declared) 
             { //Not declared (YET)
                 //Adds name to the theList  and then adds the lineRef to the refs list.
                 theList.Add(new Entry(name));
@@ -46,14 +47,22 @@ namespace Parva {
             string display = "";
             foreach (Entry x in theList)
             {
-                display += x.name + "\t\t\t";
+                if (x.name.Length > 7) //7 be the magic number.
+                    display += x.name + "\t\t\t";
+                else 
+                    display += x.name + "\t\t\t\t";
+
+
                 //First line where name is mentioned should be the declaration line
                 //might need to add some check here to see that it actually was declared.
                 display += "-" + x.refs[0] + "\t"; 
                 for (int i = 1; i < x.refs.Count; i++)
                     display += x.refs[i] + "\t";
+                Console.WriteLine(display);
+                display = "";
                 display += "\n";
             }
+            
     } // Table.PrintTable
 
   } // Table

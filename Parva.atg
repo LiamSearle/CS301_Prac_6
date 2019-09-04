@@ -35,7 +35,9 @@ COMMENTS FROM "/*" TO "*/"
 IGNORE CHR(9) .. CHR(13)
 
 PRODUCTIONS
-  Parva             = "void" Ident "(" ")" Block (. Console.Write("hello, mate\n"); .) .
+  Parva             = 	(. Table.ClearTable(); Table.dec = true; .) //Declaration of a method
+						"void" Ident "(" ")" Block  
+						(. Table.PrintTable(); .) .
   Block             = "{" { Statement } "}" .
 
 /* The options in Statement are easily extended to handle the new forms */
@@ -53,7 +55,8 @@ PRODUCTIONS
 /* Declarations remain the same as before */
 
   ConstDeclarations = "const" OneConst { "," OneConst } ";" .
-  OneConst          = Ident "=" Constant .
+  OneConst          = 	(. Table.dec = true; .)
+						Ident "=" Constant .
   Constant          =   number | charLit
                       | "true" | "false" | "null" .
   VarDeclarations   = Type OneVar { "," OneVar } ";" .
@@ -66,7 +69,8 @@ PRODUCTIONS
 /* Don't be tempted to use the CompoundAssignOp in the declaration of OneVar or OneConst.
    It cannot have a proper semantic meaning if you do.  All you can use is "=" */
 
-  OneVar            = Ident [ "=" Expression ] .
+  OneVar            = 	(. Table.dec = true; .)
+						Ident [ "=" Expression ] .
 
 /* One way of introducing the extended form of assignment statements might be to define
 
@@ -90,7 +94,8 @@ PRODUCTIONS
                         | "--"
                       ) ";" .
 
-  Designator        = Ident [ "[" Expression "]" ] .
+  Designator        =	(. Table.dec = false; .)
+						Ident [ "[" Expression "]" ] .
 
 /* The if-then-elsif-else construction is most easily described as follows. Although
   this is not LL(1), this works admirably - it is simply the well-known dangling
@@ -120,7 +125,8 @@ PRODUCTIONS
 
 /* a C# inspired ForStatement might look like this */
 
-  ForStatement      = "for" "("
+  ForStatement      =  (.  Table.dec = false; .)
+					  "for" "("
                         [ [ BasicType ] Ident "=" Expression ] ";"
                         [ Condition ] ";"
                         [ Step ]
@@ -149,7 +155,7 @@ PRODUCTIONS
 
   RelOp             = "==" | "!=" | "<" | "<=" | ">" | ">=" .
 
-  Ident             = identifier (. Console.Write("bye\n"); .) .
+  Ident             = identifier  (. Table.AddRef(token.val, Table.dec, token.line); .) .
 
 END Parva.
 
