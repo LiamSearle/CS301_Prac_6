@@ -1,0 +1,155 @@
+COMPILER Parva $CN
+/* Parva level 1 grammar  - Coco/R for C# (EBNF)
+   P.D. Terry, Rhodes University, 2016
+   Extended Grammar similar to that done in Prac 3  */
+
+CHARACTERS
+  lf         = CHR(10) .
+  backslash  = CHR(92) .
+  control    = CHR(0) .. CHR(31) .
+  letter     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" .
+  digit      = "0123456789" .
+  stringCh   = ANY - '"' - control - backslash .
+  charCh     = ANY - "'" - control - backslash .
+  printable  = ANY - control .
+
+TOKENS
+
+/* Insisting that identifiers cannot end with an underscore is quite easy */
+
+  identifier = letter { letter | digit | "_" { "_" } ( letter | digit ) } .
+
+/* but a simpler version is what many people think of
+
+  identifier = letter { letter | digit | "_" ( letter | digit ) } .
+
+   Technically this is not quite what was asked.  The restriction is really that an
+   identifier cannot end with an underscore.  Identifiers like Pat_____Terry are allowed: */
+
+  number     = digit { digit } .
+  stringLit  = '"' { stringCh | backslash printable } '"' .
+  charLit    = "'" ( charCh   | backslash printable ) "'" .
+
+COMMENTS FROM "//" TO lf
+COMMENTS FROM "/*" TO "*/"
+IGNORE CHR(9) .. CHR(13)
+
+PRODUCTIONS
+  Parva             = "void" Ident "(" ")" Block (. Console.Write("hello, mate\n"); .) .
+  Block             = "{" { Statement } "}" .
+
+/* The options in Statement are easily extended to handle the new forms */
+
+  Statement         =    Block
+                       | ConstDeclarations | VarDeclarations
+                       | Assignments
+                       | IfStatement       | WhileStatement
+                       | ReturnStatement   | HaltStatement
+                       | ReadStatement     | WriteStatement
+                       | ForStatement      | BreakStatement
+                       | ContinueStatement | DoWhileStatement
+                       | ";" .
+
+/* Declarations remain the same as before */
+
+  ConstDeclarations = "const" OneConst { "," OneConst } ";" .
+  OneConst          = Ident "=" Constant .
+  Constant          =   number | charLit
+                      | "true" | "false" | "null" .
+  VarDeclarations   = Type OneVar { "," OneVar } ";" .
+
+/* We can introduce the extra form of asssignment operators as tokens as follows.  Note
+   theta we do not want to use, say "+" "=" because they cannot contain spaces. */
+
+  CompoundAssignOp  = "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "|=" .
+
+/* Don't be tempted to use the CompoundAssignOp in the declaration of OneVar or OneConst.
+   It cannot have a proper semantic meaning if you do.  All you can use is "=" */
+
+  OneVar            = Ident [ "=" Expression ] .
+
+/* One way of introducing the extended form of assignment statements might be to define
+
+  Assignments = Designator { "," Designator } ( "=" | CompoundAssignOp )
+                Expression { "," Expression } .
+
+*/
+
+/* However, we might wish to limit the form with multiple Designators and Expressions to
+   use only the simple = operator, for ease of code generation as we may see later.
+
+   If this is the case, to keep thing LL(1) compliant, the extra forms of assignment
+   statement familiar from Python, and the compound assignments familiar from C and C# are
+   best handled as below.  THis affords a nice example of factoring a grammar to avoid
+   LL(1) conflicts by delaying the awkward component for a while */
+
+  Assignments       = Designator
+                      (   CompoundAssignOp Expression
+                        | { "," Designator } "=" Expression { "," Expression }
+                        | "++"
+                        | "--"
+                      ) ";" .
+
+  Designator        = Ident [ "[" Expression "]" ] .
+
+/* The if-then-elsif-else construction is most easily described as follows. Although
+  this is not LL(1), this works admirably - it is simply the well-known dangling
+  else ambiguity, which the parser resolves by associating elsif and else clauses
+  with the most recent if */
+
+  IfStatement       = "if" "(" Condition ")" Statement
+                      { "elsif" "(" Condition ")" Statement }
+                      [ "else" Statement ] .
+
+  WhileStatement    = "while" "(" Condition ")" Statement .
+
+/* Remember that the DoWhile statement must end with a semicolon - easy to forget this!
+   Why don't we need a semicolon as a terminator for a WhileStatement or IfStatement? */
+
+  DoWhileStatement  = "do"  Statement  "while" "(" Condition ")" ";" .
+
+/* Break and Continue statements are very simple.  They are really "context dependent" but we
+   cannot impose such restrictions in a context-free grammar.  And they also need their own
+   terminating semicolons, which tend to be forgotten. */
+
+  BreakStatement    = "break"    ";" .
+  ContinueStatement = "continue" ";" .
+
+  ReturnStatement   = "return"   ";" .
+  HaltStatement     = "halt"     ";" .
+
+/* a C# inspired ForStatement might look like this */
+
+  ForStatement      = "for" "("
+                        [ [ BasicType ] Ident "=" Expression ] ";"
+                        [ Condition ] ";"
+                        [ Step ]
+                      ")" Statement .
+
+  Step              =  Ident ( "++" | "--" | ( "=" | CompoundAssignOp ) Expression ) .
+
+  ReadStatement     = "read" "(" ReadElement { "," ReadElement } ")" ";" .
+  ReadElement       = stringLit | Designator .
+  WriteStatement    = "write" "(" WriteElement { "," WriteElement } ")" ";" .
+  WriteElement      = stringLit | Expression .
+  Condition         = Expression .
+  Expression        = AddExp [ RelOp AddExp ] .
+  AddExp            = [ "+" | "-" ] Term { AddOp Term } .
+  Term              = Factor { MulOp Factor } .
+  Factor            =   Designator | Constant
+                      | "new" BasicType "[" Expression "]"
+                      | "!" Factor | "(" Expression ")" .
+  Type              = BasicType [ "[]" ] .
+  BasicType         = "int" | "bool" .
+  AddOp             = "+" | "-" | "||" .
+
+/* The % operator is easily added to the set of MulOps */
+
+  MulOp             = "*" | "/" | "&&" | "%" .
+
+  RelOp             = "==" | "!=" | "<" | "<=" | ">" | ">=" .
+
+  Ident             = identifier (. Console.Write("bye\n"); .) .
+
+END Parva.
+
