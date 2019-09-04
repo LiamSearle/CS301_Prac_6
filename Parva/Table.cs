@@ -17,7 +17,8 @@ namespace Parva {
 
   class Table {
     static List<Entry> theList = new List<Entry>();
-
+	bool dec = false; // global variable that can be manipulated in the Parva grammar.
+	
     public static void ClearTable() {
             // Clears cross-reference table
             theList.Clear();
