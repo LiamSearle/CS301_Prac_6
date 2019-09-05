@@ -45,9 +45,10 @@ namespace Parva {
 
     public static void PrintTable() {
     // Prints out all references in the table (eliminate duplicate line numbers)
+            System.IO.File.Delete("output.txt");    
             string display = "";
-            string[] lines = new lines[] { };
-            int i = 0;
+            List<string> lines = new List<string>() { };
+           
             foreach (Entry x in theList)
             {
                 if (x.name.Length > 7) //7 be the magic number.
@@ -62,10 +63,12 @@ namespace Parva {
                 for (int i = 1; i < x.refs.Count; i++)
                     display += x.refs[i] + "\t";
 				display += "\n\n";
-                lines[i] = display;
-                i++;
+                lines.Add(display);
+                display = "";
+            
             }
-            IO.file.WriteAllLines("output.txt", lines);
+            System.IO.File.WriteAllLines("output.txt", lines);
+            
             
     } // Table.PrintTable
 
