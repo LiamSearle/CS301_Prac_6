@@ -1,5 +1,4 @@
-using Library;  //a = 5 + 5
-
+using Library; 
 COMPILER Calc $NC
 //  Liam Searle, Matthew Lewis, Makungu Chansa (:?)
 //  Attributed calc grammar 
@@ -92,7 +91,7 @@ COMMENTS FROM "//" TO lf
   
 IGNORE CHR(0) .. CHR(31)
 
-PRODUCTIONS   a = 5 + c;
+PRODUCTIONS  
   Calc				
   =  (. int Value = 0; .)
   { Print<out Value>   
@@ -101,19 +100,19 @@ PRODUCTIONS   a = 5 + c;
   .
 
   Assignment<out int Value>
-  = (. Table.dec = true; bool check = true; string id = ""; int type = 0;.)
-  Variable<out check, out id> (. Table.dec = false; .) //Set dec back to false
+  = (. Table.dec = true; Table.check = true; string id = ""; int type = 0;.)
+  Variable<out id, out type> (. Table.dec = false; Table.check = false; .) //Set global vars back to false
   "="
   Expression<out Value, out type> (. Table.StoreValue(id, Value, type); .)
   SYNC ";"
   .
 
   Print<out int Value>
-  = 
+  = (. Table.dec = false; int type = 0; .)
   "print"
-  Expression<out Value> (. Console.WriteLine(Value.ToString()); .) 
+  Expression<out Value, out type> (. Console.WriteLine(Value.ToString()); .) 
   { WEAK ","
-    Expression<out Value> (. Console.WriteLine(Value.ToString()); .) 
+    Expression<out Value, out type > (. Console.WriteLine(Value.ToString()); .) 
   }
   SYNC ";"
   .
@@ -121,7 +120,7 @@ PRODUCTIONS   a = 5 + c;
   Expression<out int Value, out int type>
   =
   AndExp<out Value, out type> 
-  { "||"   (. int otherValue = 0; .)
+  { "||"   (. int otherValue = 0; int otherType = 0;.)
     AndExp<out otherValue, out otherType> 
     (. 
 	   type = (type == otherType ? type : 0); 
@@ -138,7 +137,7 @@ PRODUCTIONS   a = 5 + c;
   AndExp<out int Value, out int type>
   =
   EqlExp<out Value, out type>
-  { "&&" (. int otherValue = 0; .)
+  { "&&" (. int otherValue = 0; int otherType = 0;.)
     EqlExp<out otherValue, out otherType>
 	 (. 
 	   type = (type == otherType ? type : 0); 
@@ -156,7 +155,7 @@ PRODUCTIONS   a = 5 + c;
   =
   RelExp<out Value, out type>
   { (. string op = ""; .)
-	EqlOp<out op>	 (. int otherValue = 0; .)
+	EqlOp<out op>	 (. int otherValue = 0; int otherType = 0;.)
     RelExp<out otherValue, out otherType>	
     (. 
 	   type = (type == otherType ? type : 0); 
@@ -174,7 +173,7 @@ PRODUCTIONS   a = 5 + c;
   =
   AddExp<out Value, out type>
   [ (. string op = ""; .)
-    RelOp<out op, out type>	 (. int otherValue = 0; .)
+    RelOp<out op>	 (. int otherValue = 0; int otherType = 0;.)
     AddExp<out otherValue, out otherType>	
 	(. 
 	   type = (type == otherType ? type : 0); 
@@ -193,7 +192,7 @@ PRODUCTIONS   a = 5 + c;
   = 
   MultExp<out Value, out type>
   { (. string op = ""; .)
-	AddOp<out op>   (. int otherValue = 0; .)
+	AddOp<out op>   (. int otherValue = 0; int otherType = 0;.)
     MultExp<out otherValue, out otherType>  
 	(. 
 	   type = (type == otherType ? type : 0); 
@@ -211,7 +210,7 @@ PRODUCTIONS   a = 5 + c;
   =
   UnaryExp<out Value, out type>   
   { (. string op = ""; .)
-	MulOp<out op>  (. int otherValue = 0; .)
+	MulOp<out op> (. int otherValue = 0; int otherType = 0;.)
     UnaryExp<out otherValue, out otherType> (.  .)
 	(. 
 	   type = (type == otherType ? type : 0); 
@@ -225,17 +224,38 @@ PRODUCTIONS   a = 5 + c;
   }
   .
 
-  UnaryExp<out int Value, out int type> (. Value = 0; int otherValue = 0; type = 0; .)
+  UnaryExp<out int Value, out int type> (. Value = 0; int otherValue = 0; type = 0; int otherType = 0; .)
   = 
   Factor<out Value, out type> 
-    | "+" UnaryExp<out otherValue>  (. Value = Add(Value, otherValue, "+"); .)
-    | "-" UnaryExp<out otherValue>	(. Value = Add(Value, otherValue, "-"); .)
-    | "!" UnaryExp<out otherValue>  (. Value = Not(otherValue); .)
+    | "+" UnaryExp<out otherValue, out otherType>   (. type = (type == otherType ? type : 0); 
+													   if(type == 4){
+														    Value = Add(Value, otherValue, "+"); 
+															type = 4; //output of a MulOp must be an int
+													   }else{
+														   SemErr("Both sides of a AddOp must be ints"); //Throw errors for statements such as: a = 5 + true;
+													   }
+													.)
+		
+    | "-" UnaryExp<out otherValue, out otherType>	(. type = (type == otherType ? type : 0); 
+													   if(type == 4){
+														    Value = Add(Value, otherValue, "-"); 
+															type = 4; //output of a MulOp must be an int
+													   }else{
+														   SemErr("Both sides of a AddOp must be ints"); //Throw errors for statements such as: a = 5 + true;
+													   }
+													.)
+    | "!" UnaryExp<out otherValue, out otherType>   (. if(otherType == 6){ 
+															Value = Not(otherValue); 
+															type = 6; //output of a not must be a bool
+													   }else{
+															SemErr("A not must be applied to a bool"); //Throw errors for statements such as: a = !5
+													   }
+												    .)
   .
 
   Factor<out int Value, out int type> (. Value = 0; type = 0;.)
-  =	  (. string id = "";  bool check = true; .) //check true since declaration of a variable will not pass through the Factor production
-      Variable<out check, out id>			
+  =	  (. string id = "";  Table.check = true; .) //check true since declaration of a variable will not pass through the Factor production
+      Variable<out id, out type>			
     | Number<out Value, out type> 
     | "true"			(. Value = 1; type = 6;.)
     | "false"			(. Value = 0; type = 6;.)
@@ -243,13 +263,15 @@ PRODUCTIONS   a = 5 + c;
       ")"
   .
 
-  Variable<out bool check, out string id>
-  = 
+  Variable<out string id, out int type>
+  = (. type = 0; .)
   identifier  (. id = token.val;
-				 if(check) 
+				 if(!Table.check){ 
 					Table.RetrieveValue(token.val); 
-				 else 
+					type = Table.RetrieveType(token.val);
+				 }else{ 
 					 Table.AddRef(token.val, Table.dec, token.line); //reference added without value evaluated yet.
+				 }
 			  .)
   .
 
@@ -258,7 +280,7 @@ PRODUCTIONS   a = 5 + c;
   number				(.  Value =  Convert.ToInt32(token.val); type = 4;.)
   .
 
-  MulOp<out string op> (. op = ""; .)
+  MulOp<out string op> (. op = "";  .)
   =
       "*"	(. op = token.val; .)
     | "/"	(. op = token.val; .)
@@ -271,7 +293,7 @@ PRODUCTIONS   a = 5 + c;
     | "-" (. op = token.val; .)
   .
 
-  RelOp<out string op> (. op = ""; .)
+  RelOp<out string op> (. op = "";  .)
   =
       "<"  (. op = token.val; .)
     | "<=" (. op = token.val; .)
@@ -279,7 +301,7 @@ PRODUCTIONS   a = 5 + c;
     | ">=" (. op = token.val; .)
   .
 
-  EqlOp<out string op>  (. op = ""; .)
+  EqlOp<out string op>  (. op = "";  .)
   =
       "=="		(. op = token.val; .)
     | "!="		(. op = token.val; .)

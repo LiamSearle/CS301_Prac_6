@@ -5,7 +5,7 @@ using Library;
 using System;
 using System.Collections.Generic;
 
-namespace Parva {
+namespace Calc {
     /*
     class Types //won't be using this for arrays yet.
     {
@@ -34,7 +34,7 @@ namespace Parva {
     } // end Types 
 } */
   class Entry {                      // Cross reference table entries
-    enum Type
+    public enum Type
     { //using the same spacing as above for future proofing.
         noType = 0,
         intType = 4,
@@ -46,17 +46,19 @@ namespace Parva {
     public List<int> refs;           // Line numbers where it appears
     public Entry(string name) {
       this.name = name;
-      this.value = null;
-      this.type = noType;
+      this.type = Type.noType;
       this.refs = new List<int>();
     }
 } // Entry
 
   class Table {
     static List<Entry> theList = new List<Entry>(); //Symbol Table
-	public static bool dec = false; // global variable that can be manipulated in the Parva grammar.
-	
-    public static void ClearTable() {
+    // global variables that can be manipulated in the Parva grammar.
+    public static bool dec = false; 
+    public static bool check = false; 
+
+
+        public static void ClearTable() {
             // Clears cross-reference table
             theList.Clear();
     } // Table.ClearTable
@@ -107,19 +109,28 @@ namespace Parva {
             for (int i = 0; i < theList.Count; i++)
                 if (theList[i].name == name)
                     return theList[i].value;
-             /*   else
-                    throw error; */
-                
+            string msg = "Variable " + name + " has not been declared.";
+            throw new Exception(msg);
         }
 
-    public static void StoreValue(string name, int val, int type)
+        public static int RetrieveType(string name)
+        // Retrieves the value that is associated with the variable in the table
+        {
+            for (int i = 0; i < theList.Count; i++)
+                if (theList[i].name == name)
+                    return (int) theList[i].type;
+            string msg = "Variable " + name + " has not been declared.";
+            throw new Exception(msg);
+        }
+
+        public static void StoreValue(string name, int val, int type)
     // Store the value & type of a variable with the variable
     {
         for (int i = 0; i < theList.Count; i++)
         {
             if (theList[i].name == name)
             {
-                theList[i].type = type;
+                theList[i].type = (Entry.Type) type;
                 theList[i].value = val;
                 break;
             }
