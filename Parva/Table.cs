@@ -60,7 +60,7 @@ namespace Parva {
                     display += x.refs[i] + "\t";
 				display += "\n\n";
             }
-			Console.WriteLine(display);
+			IO.WriteLine(display);
             
     } // Table.PrintTable
 

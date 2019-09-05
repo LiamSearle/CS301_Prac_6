@@ -6,18 +6,54 @@ using System;
 using System.Collections.Generic;
 
 namespace Parva {
+    /*
+    class Types //won't be using this for arrays yet.
+    {
+        public const int // Identifier (and expression) types
+        noType = 0, // Numbering is significant
+        nullType = 2, // array types are denoted by these numbers + 1
+        intType = 4, //
+        boolType = 6, //
+        voidType = 8;
+        static List<string> typeNames = new List<string>();
+        static int nextType = 0;
 
+        public static int AddType(string name)
+        {
+            // Generate (and return) next type id, and add to list of type names
+            int thisType = nextType;
+            nextType += 2;
+            typeNames.Add(name); // simple
+            typeNames.Add(name + "[]"); // matching array
+            return thisType;
+        } // Types.AddType
+        public static string Name(int type)
+        {
+            return typeNames[type];
+        } // Types.Name
+    } // end Types 
+} */
   class Entry {                      // Cross reference table entries
+    enum Type
+    { //using the same spacing as above for future proofing.
+        noType = 0,
+        intType = 4,
+        boolType = 6
+    };
     public string name;              // The identifier itself
+    public int value;                // Value stored in the variable
+    public Type type;
     public List<int> refs;           // Line numbers where it appears
     public Entry(string name) {
       this.name = name;
+      this.value = null;
+      this.type = noType;
       this.refs = new List<int>();
     }
-  } // Entry
+} // Entry
 
   class Table {
-    static List<Entry> theList = new List<Entry>();
+    static List<Entry> theList = new List<Entry>(); //Symbol Table
 	public static bool dec = false; // global variable that can be manipulated in the Parva grammar.
 	
     public static void ClearTable() {
@@ -64,6 +100,31 @@ namespace Parva {
             }
             
     } // Table.PrintTable
+
+        public static int RetrieveValue(string name)
+        // Retrieves the value that is associated with the variable in the table
+        {
+            for (int i = 0; i < theList.Count; i++)
+                if (theList[i].name == name)
+                    return theList[i].value;
+             /*   else
+                    throw error; */
+                
+        }
+
+    public static void StoreValue(string name, int val, int type)
+    // Store the value & type of a variable with the variable
+    {
+        for (int i = 0; i < theList.Count; i++)
+        {
+            if (theList[i].name == name)
+            {
+                theList[i].type = type;
+                theList[i].value = val;
+                break;
+            }
+        }
+    }
 
   } // Table
 
