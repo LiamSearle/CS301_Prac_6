@@ -60,13 +60,32 @@ static int Eql(int a, int b, string op){
 		
 }
 
+static int Rel(int a, int b, string op){
+	if ( op == "<")
+		return ToInt(a < b);
+	else if (op == "<=")
+		return ToInt(a <= b);
+	else if (op == ">")
+		return ToInt(a > b);
+	else if (op == ">=")
+		return ToInt(a >= b);
+	else 
+		return -1;//throw error (not an ideal solution, WILL fix)
+}
+
+static int Not(int a){
+	bool b = ToBool(a);
+	bool c = !b;
+	return ToInt(c);
+}
+
 CHARACTERS
   digit      = "0123456789" .
   letter     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" .
   lf         = CHR(10) .
 
 TOKENS
-  number     = digit { digit } .
+  number     = digit { digit } . 
   identifier = letter { letter | digit } .
 
 COMMENTS FROM "//" TO lf
@@ -75,26 +94,26 @@ IGNORE CHR(0) .. CHR(31)
 
 PRODUCTIONS   
   Calc				
-  =
-  { Print
-  | Assignment
+  =  (. int Value = 0; .)
+  { Print<out Value>   
+  | Assignment<out Value>  (. Console.WriteLine(Value.ToString()); .) 
   } "quit"
   .
 
-  Assignment
-  = (. int Value = 0; .)
+  Assignment<out int Value>
+  = 
   Variable
   "="
   Expression<out Value>
   SYNC ";"
   .
 
-  Print
-  = (. int Value = 0; .)
+  Print<out int Value>
+  = 
   "print"
-  Expression<out Value>
+  Expression<out Value> (. Console.WriteLine(Value.ToString()); .) 
   { WEAK ","
-    Expression<out Value>
+    Expression<out Value> (. Console.WriteLine(Value.ToString()); .) 
   }
   SYNC ";"
   .
@@ -104,8 +123,7 @@ PRODUCTIONS
   AndExp<out Value> 
   { "||"   (. int otherValue = 0; .)
     AndExp<out otherValue> (. Value = Or(Value, otherValue); .)
-  	(. display = Value.ToString(); .)
-  } (. if(display != "") Console.WriteLine(Value.ToString()); display = ""; .)
+  } 
   .
 
   AndExp<out int Value>
@@ -113,8 +131,7 @@ PRODUCTIONS
   EqlExp<out Value>
   { "&&" (. int otherValue = 0; .)
     EqlExp<out otherValue> (. Value = And(Value, otherValue); .)
-	(. display = Value.ToString(); .)
-  } (. if(display != "") Console.WriteLine(Value.ToString()); display = ""; .)
+  } 
   .
 
   EqlExp<out int Value>
@@ -123,16 +140,18 @@ PRODUCTIONS
   { (. string op = ""; .)
 	EqlOp<out op>	 (. int otherValue = 0; .)
     RelExp<out otherValue>	(. Value = Eql(Value,otherValue, op); .)
-	(. display = Value.ToString(); .)
-  } (. if(display != "") Console.WriteLine(Value.ToString()); display = ""; .)
+  }
   .
 
   RelExp<out int Value>
   =
   AddExp<out Value>
-  [ RelOp
-    AddExp<out Value>
-  ] .
+  [ (. string op = ""; .)
+    RelOp<out op>	 (. int otherValue = 0; .)
+    AddExp<out otherValue>	(. Value = Rel(Value,otherValue, op); .)
+  ] 
+  .
+
 
   AddExp<out int Value>  // might need to put this elsewhere, maybe do: (. int Value = 0; .)
   = //(. int  Value = 0; .)
@@ -140,8 +159,7 @@ PRODUCTIONS
   { (. string op = ""; .)
 	AddOp<out op>   (. int otherValue = 0; .)
     MultExp<out otherValue>  (. Value =  Add(Value, otherValue,op); .)
-	(. display = Value.ToString(); .)
-  } (. if(display != "") Console.WriteLine(Value.ToString()); display = "";.)
+  }
   .
   
   MultExp<out int Value>
@@ -150,15 +168,15 @@ PRODUCTIONS
   { (. string op = ""; .)
 	MulOp<out op>  (. int otherValue = 0; .)
     UnaryExp<out otherValue> (. Value = Mult(Value, otherValue, op); .)
-	(. display = Value.ToString(); .)
-  } (. if(display != "") Console.WriteLine(Value.ToString()); display = "";.)
+  }
   .
 
-  UnaryExp<out int Value> (. Value = 0; .)
-  =   Factor<out Value>
-    | "+" UnaryExp<out Value> 
-    | "-" UnaryExp<out Value>
-    | "!" UnaryExp<out Value>
+  UnaryExp<out int Value> (. Value = 0; int otherValue = 0; .)
+  = 
+  Factor<out Value> 
+    | "+" UnaryExp<out otherValue>  (. Value = Add(Value, otherValue, "+"); .)
+    | "-" UnaryExp<out otherValue>	(. Value = Add(Value, otherValue, "-"); .)
+    | "!" UnaryExp<out otherValue>  (. Value = Not(otherValue); .)
   .
 
   Factor<out int Value> (. Value = 0; .)
@@ -194,12 +212,12 @@ PRODUCTIONS
     | "-" (. op = token.val; .)
   .
 
-  RelOp
+  RelOp<out string op> (. op = ""; .)
   =
-      "<"
-    | "<="
-    | ">"
-    | ">="
+      "<"  (. op = token.val; .)
+    | "<=" (. op = token.val; .)
+    | ">"  (. op = token.val; .) 
+    | ">=" (. op = token.val; .)
   .
 
   EqlOp<out string op>  (. op = ""; .)

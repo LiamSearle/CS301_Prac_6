@@ -1,0 +1,232 @@
+
+   1 using Library;  //a = 5 + 5
+   2 
+   3 COMPILER Calc $NC
+   4 //  Liam Searle, Matthew Lewis, Makungu Chansa (:?)
+   5 //  Attributed calc grammar 
+   6 
+   7 static string display = "";
+   8 
+   9 static int ToInt(bool b) {
+  10 // return 0 or 1 according as b is false or true
+  11   return b ? 1 : 0;
+  12 } // ToInt
+  13 
+  14 static bool ToBool(int i) {
+  15 // return false or true according as i is 0 or 1
+  16   return i == 0 ? false : true;
+  17 } // ToBool
+  18 
+  19 static int Add(int a, int b, string op) {  
+  20 	if(op == "+")
+  21 		return a+b;
+  22 	else if (op == "-")
+  23 		return a-b;
+  24 	else 
+  25 		return -1;//throw error (not an ideal solution, WILL fix)
+  26 }
+  27 
+  28 static int Mult(int a, int b, string op) {  
+  29 	if(op == "%")
+  30 		return a%b;
+  31 	else if (op == "*")
+  32 		return a*b;
+  33 	else if (op == "/") 
+  34 		return a/b;
+  35 	else
+  36 		return -1;//throw error (not an ideal solution, WILL fix)
+  37 }
+  38 
+  39 static int Or(int a, int b) {
+  40 	 bool c = ToBool(a);
+  41 	 bool d = ToBool(b);
+  42 	 bool e = c || d;
+  43 	 return ToInt(e);
+  44 }
+  45 
+  46 static int And(int a, int b) {
+  47 	 bool c = ToBool(a);
+  48 	 bool d = ToBool(b);
+  49 	 bool e = c && d;
+  50 	 return ToInt(e);
+  51 }
+  52 
+  53 static int Eql(int a, int b, string op){
+  54 	 if ( op == "==" ) //oof, inception vibes.
+  55 		return ToInt((a == b));
+  56 	 else if (op == "!=")
+  57 		return ToInt((a != b));
+  58 	 else
+  59 		return -1;//throw error (not an ideal solution, WILL fix)
+  60 		
+  61 }
+  62 
+  63 static int Rel(int a, int b, string op){
+  64 	if ( op == "<")
+  65 		return ToInt(a < b);
+  66 	else if (op == "<=")
+  67 		return ToInt(a <= b);
+  68 	else if (op == ">")
+  69 		return ToInt(a > b);
+  70 	else if (op == ">=")
+  71 		return ToInt(a >= b);
+  72 	else 
+  73 		return -1;//throw error (not an ideal solution, WILL fix)
+  74 }
+  75 
+  76 static int Not(int a){
+  77 	bool b = ToBool(a);
+  78 	bool c = !b;
+  79 	return ToInt(c);
+  80 }
+  81 
+  82 CHARACTERS
+  83   digit      = "0123456789" .
+  84   letter     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" .
+  85   lf         = CHR(10) .
+  86 
+  87 TOKENS
+  88   number     = digit { digit } . 
+  89   identifier = letter { letter | digit } .
+  90 
+  91 COMMENTS FROM "//" TO lf
+  92   
+  93 IGNORE CHR(0) .. CHR(31)
+  94 
+  95 PRODUCTIONS   
+  96   Calc				
+  97   =  (. int Value = 0; .)
+  98   { Print<out Value>   
+  99   | Assignment<out Value>  (. Console.WriteLine(Value.ToString()); .) 
+ 100   } "quit"
+ 101   .
+ 102 
+ 103   Assignment<out int Value>
+ 104   = 
+ 105   Variable
+ 106   "="
+ 107   Expression<out Value>
+ 108   SYNC ";"
+ 109   .
+ 110 
+ 111   Print<out int Value>
+ 112   = 
+ 113   "print"
+ 114   Expression<out Value> (. Console.WriteLine(Value.ToString()); .) 
+ 115   { WEAK ","
+ 116     Expression<out Value> (. Console.WriteLine(Value.ToString()); .) 
+ 117   }
+ 118   SYNC ";"
+ 119   .
+ 120 
+ 121   Expression<out int Value>
+ 122   =
+ 123   AndExp<out Value> 
+ 124   { "||"   (. int otherValue = 0; .)
+ 125     AndExp<out otherValue> (. Value = Or(Value, otherValue); .)
+ 126   } 
+ 127   .
+ 128 
+ 129   AndExp<out int Value>
+ 130   =
+ 131   EqlExp<out Value>
+ 132   { "&&" (. int otherValue = 0; .)
+ 133     EqlExp<out otherValue> (. Value = And(Value, otherValue); .)
+ 134   } 
+ 135   .
+ 136 
+ 137   EqlExp<out int Value>
+ 138   =
+ 139   RelExp<out Value>
+ 140   { (. string op = ""; .)
+ 141 	EqlOp<out op>	 (. int otherValue = 0; .)
+ 142     RelExp<out otherValue>	(. Value = Eql(Value,otherValue, op); .)
+ 143   }
+ 144   .
+ 145 
+ 146   RelExp<out int Value>
+ 147   =
+ 148   AddExp<out Value>
+ 149   [ (. string op = ""; .)
+ 150     RelOp<out op>	 (. int otherValue = 0; .)
+ 151     AddExp<out otherValue>	(. Value = Rel(Value,otherValue, op); .)
+ 152   ] 
+ 153   .
+ 154 
+ 155 
+ 156   AddExp<out int Value>  // might need to put this elsewhere, maybe do: (. int Value = 0; .)
+ 157   = //(. int  Value = 0; .)
+ 158   MultExp<out Value>
+ 159   { (. string op = ""; .)
+ 160 	AddOp<out op>   (. int otherValue = 0; .)
+ 161     MultExp<out otherValue>  (. Value =  Add(Value, otherValue,op); .)
+ 162   }
+ 163   .
+ 164   
+ 165   MultExp<out int Value>
+ 166   =
+ 167   UnaryExp<out Value>
+ 168   { (. string op = ""; .)
+ 169 	MulOp<out op>  (. int otherValue = 0; .)
+ 170     UnaryExp<out otherValue> (. Value = Mult(Value, otherValue, op); .)
+ 171   }
+ 172   .
+ 173 
+ 174   UnaryExp<out int Value> (. Value = 0; int otherValue = 0; .)
+ 175   = 
+ 176   Factor<out Value> 
+ 177     | "+" UnaryExp<out otherValue>  (. Value = Add(Value, otherValue, "+"); .)
+ 178     | "-" UnaryExp<out otherValue>	(. Value = Add(Value, otherValue, "-"); .)
+ 179     | "!" UnaryExp<out otherValue>  (. Value = Not(otherValue); .)
+ 180   .
+ 181 
+ 182   Factor<out int Value> (. Value = 0; .)
+ 183   =			
+ 184       Variable			
+ 185     | Number<out Value>
+ 186     | "true"			(. Value = 1; .)
+ 187     | "false"			(. Value = 0; .)
+ 188     | "(" Expression<out Value>
+ 189       ")"
+ 190   .
+ 191 
+ 192   Variable
+ 193   =
+ 194   identifier
+ 195   .
+ 196 
+ 197   Number<out int Value>
+ 198   =
+ 199   number				(.  Value =  Convert.ToInt32(token.val);.)
+ 200   .
+ 201 
+ 202   MulOp<out string op> (. op = ""; .)
+ 203   =
+ 204       "*"	(. op = token.val; .)
+ 205     | "/"	(. op = token.val; .)
+ 206     | "%"	(. op = token.val; .)
+ 207     .
+ 208 
+ 209   AddOp<out string op> (. op = ""; .)
+ 210   =
+ 211       "+" (. op = token.val; .)
+ 212     | "-" (. op = token.val; .)
+ 213   .
+ 214 
+ 215   RelOp<out string op> (. op = ""; .)
+ 216   =
+ 217       "<"  (. op = token.val; .)
+ 218     | "<=" (. op = token.val; .)
+ 219     | ">"  (. op = token.val; .) 
+ 220     | ">=" (. op = token.val; .)
+ 221   .
+ 222 
+ 223   EqlOp<out string op>  (. op = ""; .)
+ 224   =
+ 225       "=="		(. op = token.val; .)
+ 226     | "!="		(. op = token.val; .)
+ 227   .
+ 228 
+ 229 END Calc.
+
+0 errors detected
