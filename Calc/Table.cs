@@ -93,7 +93,7 @@ namespace Calc {
 
                 //First line where name is mentioned should be the declaration line
                 //might need to add some check here to see that it actually was declared.
-                display += "-" + x.refs[0] + "\t"; 
+                display += "-" + x.refs[0] + "\t" + x.type + "\t" + x.value + ":\t";
                 for (int i = 1; i < x.refs.Count; i++)
                     display += x.refs[i] + "\t";
                 Console.WriteLine(display);

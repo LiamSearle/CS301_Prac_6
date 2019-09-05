@@ -96,14 +96,15 @@ PRODUCTIONS
   =  (. int Value = 0; .)
   { Print<out Value>   
   | Assignment<out Value>  (. Console.WriteLine(Value.ToString()); .) 
-  } "quit"
+  } "quit" (. Table.PrintTable(); .)
   .
 
   Assignment<out int Value>
   = (. Table.dec = true; Table.check = true; string id = ""; int type = 0;.)
-  Variable<out id, out type> (. Table.dec = false; Table.check = false; .) //Set global vars back to false
+  Variable<out id, out type, out Value> (. Table.dec = false; Table.check = false; .) //Set global vars back to false
   "="
-  Expression<out Value, out type> (. Table.StoreValue(id, Value, type); .)
+  Expression<out Value, out type> 
+  (. Table.StoreValue(id, Value, type); .)
   SYNC ";"
   .
 
@@ -255,7 +256,7 @@ PRODUCTIONS
 
   Factor<out int Value, out int type> (. Value = 0; type = 0;.)
   =	  (. string id = "";  Table.check = true; .) //check true since declaration of a variable will not pass through the Factor production
-      Variable<out id, out type>			
+      Variable<out id, out type, out Value>			
     | Number<out Value, out type> 
     | "true"			(. Value = 1; type = 6;.)
     | "false"			(. Value = 0; type = 6;.)
@@ -263,11 +264,11 @@ PRODUCTIONS
       ")"
   .
 
-  Variable<out string id, out int type>
-  = (. type = 0; .)
+  Variable<out string id, out int type,out int Value>
+  = (. type = 0; Value = 0;.)
   identifier  (. id = token.val;
 				 if(!Table.check){ 
-					Table.RetrieveValue(token.val); 
+					Value = Table.RetrieveValue(token.val); 
 					type = Table.RetrieveType(token.val);
 				 }else{ 
 					 Table.AddRef(token.val, Table.dec, token.line); //reference added without value evaluated yet.
