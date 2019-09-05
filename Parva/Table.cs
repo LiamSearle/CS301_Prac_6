@@ -4,6 +4,7 @@
 using Library;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Parva {
 
@@ -45,6 +46,8 @@ namespace Parva {
     public static void PrintTable() {
     // Prints out all references in the table (eliminate duplicate line numbers)
             string display = "";
+            string[] lines = new lines[] { };
+            int i = 0;
             foreach (Entry x in theList)
             {
                 if (x.name.Length > 7) //7 be the magic number.
@@ -59,8 +62,10 @@ namespace Parva {
                 for (int i = 1; i < x.refs.Count; i++)
                     display += x.refs[i] + "\t";
 				display += "\n\n";
+                lines[i] = display;
+                i++;
             }
-			IO.WriteLine(display);
+            IO.file.WriteAllLines("output.txt", lines);
             
     } // Table.PrintTable
 
