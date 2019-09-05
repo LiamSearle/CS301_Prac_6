@@ -1,7 +1,10 @@
-using Library;
+using Library;  //a = 5 + 5
 
 COMPILER Calc $NC
-//  Put your names and a description here
+//  Liam Searle, Matthew Lewis, Makungu Chansa (:?)
+//  Attributed calc grammar 
+
+static string display = "";
 
 static int ToInt(bool b) {
 // return 0 or 1 according as b is false or true
@@ -13,98 +16,176 @@ static bool ToBool(int i) {
   return i == 0 ? false : true;
 } // ToBool
 
+static int Add(int a, int b, string op) {  
+	if(op == "+")
+		return a+b;
+	else if (op == "-")
+		return a-b;
+	else 
+		return -1;//throw error (not an ideal solution, WILL fix)
+}
+
+static int Mult(int a, int b, string op) {  
+	if(op == "%")
+		return a%b;
+	else if (op == "*")
+		return a*b;
+	else if (op == "/") 
+		return a/b;
+	else
+		return -1;//throw error (not an ideal solution, WILL fix)
+}
+
+static int Or(int a, int b) {
+	 bool c = ToBool(a);
+	 bool d = ToBool(b);
+	 bool e = c || d;
+	 return ToInt(e);
+}
+
+static int And(int a, int b) {
+	 bool c = ToBool(a);
+	 bool d = ToBool(b);
+	 bool e = c && d;
+	 return ToInt(e);
+}
+
+static int Eql(int a, int b, string op){
+	 if ( op == "==" ) //oof, inception vibes.
+		return ToInt((a == b));
+	 else if (op == "!=")
+		return ToInt((a != b));
+	 else
+		return -1;//throw error (not an ideal solution, WILL fix)
+		
+}
+
+static int Rel(int a, int b, string op){
+	if ( op == "<")
+		return ToInt(a < b);
+	else if (op == "<=")
+		return ToInt(a <= b);
+	else if (op == ">")
+		return ToInt(a > b);
+	else if (op == ">=")
+		return ToInt(a >= b);
+	else 
+		return -1;//throw error (not an ideal solution, WILL fix)
+}
+
+static int Not(int a){
+	bool b = ToBool(a);
+	bool c = !b;
+	return ToInt(c);
+}
+
 CHARACTERS
   digit      = "0123456789" .
   letter     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" .
+  lf         = CHR(10) .
 
 TOKENS
-  number     = digit { digit } .
+  number     = digit { digit } . 
   identifier = letter { letter | digit } .
 
+COMMENTS FROM "//" TO lf
+  
 IGNORE CHR(0) .. CHR(31)
 
-PRODUCTIONS
-  Calc
-  =
-  { Print
-  | Assignment
+PRODUCTIONS   
+  Calc				
+  =  (. int Value = 0; .)
+  { Print<out Value>   
+  | Assignment<out Value>  (. Console.WriteLine(Value.ToString()); .) 
   } "quit"
   .
 
-  Assignment
-  =
+  Assignment<out int Value>
+  = 
   Variable
   "="
-  Expression
+  Expression<out Value>
   SYNC ";"
   .
 
-  Print
-  =
+  Print<out int Value>
+  = 
   "print"
-  Expression
+  Expression<out Value> (. Console.WriteLine(Value.ToString()); .) 
   { WEAK ","
-    Expression
+    Expression<out Value> (. Console.WriteLine(Value.ToString()); .) 
   }
   SYNC ";"
   .
 
-  Expression
+  Expression<out int Value>
   =
-  AndExp
-  { "||"
-    AndExp
-  } .
-
-  AndExp
-  =
-  EqlExp
-  { "&&"
-    EqlExp
-  } .
-
-  EqlExp
-  =
-  RelExp
-  { EqlOp
-    RelExp
-  } .
-
-  RelExp
-  =
-  AddExp
-  [ RelOp
-    AddExp
-  ] .
-
-  AddExp
-  =
-  MultExp
-  { AddOp
-    MultExp
-  } .
-
-  MultExp
-  =
-  UnaryExp
-  { MulOp
-    UnaryExp
-  } .
-
-  UnaryExp
-  =   Factor
-    | "+" UnaryExp
-    | "-" UnaryExp
-    | "!" UnaryExp
+  AndExp<out Value> 
+  { "||"   (. int otherValue = 0; .)
+    AndExp<out otherValue> (. Value = Or(Value, otherValue); .)
+  } 
   .
 
-  Factor
+  AndExp<out int Value>
   =
-      Variable
-    | Number
-    | "true"
-    | "false"
-    | "(" Expression
+  EqlExp<out Value>
+  { "&&" (. int otherValue = 0; .)
+    EqlExp<out otherValue> (. Value = And(Value, otherValue); .)
+  } 
+  .
+
+  EqlExp<out int Value>
+  =
+  RelExp<out Value>
+  { (. string op = ""; .)
+	EqlOp<out op>	 (. int otherValue = 0; .)
+    RelExp<out otherValue>	(. Value = Eql(Value,otherValue, op); .)
+  }
+  .
+
+  RelExp<out int Value>
+  =
+  AddExp<out Value>
+  [ (. string op = ""; .)
+    RelOp<out op>	 (. int otherValue = 0; .)
+    AddExp<out otherValue>	(. Value = Rel(Value,otherValue, op); .)
+  ] 
+  .
+
+
+  AddExp<out int Value>  // might need to put this elsewhere, maybe do: (. int Value = 0; .)
+  = //(. int  Value = 0; .)
+  MultExp<out Value>
+  { (. string op = ""; .)
+	AddOp<out op>   (. int otherValue = 0; .)
+    MultExp<out otherValue>  (. Value =  Add(Value, otherValue,op); .)
+  }
+  .
+  
+  MultExp<out int Value>
+  =
+  UnaryExp<out Value>
+  { (. string op = ""; .)
+	MulOp<out op>  (. int otherValue = 0; .)
+    UnaryExp<out otherValue> (. Value = Mult(Value, otherValue, op); .)
+  }
+  .
+
+  UnaryExp<out int Value> (. Value = 0; int otherValue = 0; .)
+  = 
+  Factor<out Value> 
+    | "+" UnaryExp<out otherValue>  (. Value = Add(Value, otherValue, "+"); .)
+    | "-" UnaryExp<out otherValue>	(. Value = Add(Value, otherValue, "-"); .)
+    | "!" UnaryExp<out otherValue>  (. Value = Not(otherValue); .)
+  .
+
+  Factor<out int Value> (. Value = 0; .)
+  =			
+      Variable			
+    | Number<out Value>
+    | "true"			(. Value = 1; .)
+    | "false"			(. Value = 0; .)
+    | "(" Expression<out Value>
       ")"
   .
 
@@ -113,36 +194,36 @@ PRODUCTIONS
   identifier
   .
 
-  Number
+  Number<out int Value>
   =
-  number
+  number				(.  Value =  Convert.ToInt32(token.val);.)
   .
 
-  MulOp
+  MulOp<out string op> (. op = ""; .)
   =
-      "*"
-    | "/"
-    | "%"
+      "*"	(. op = token.val; .)
+    | "/"	(. op = token.val; .)
+    | "%"	(. op = token.val; .)
     .
 
-  AddOp
+  AddOp<out string op> (. op = ""; .)
   =
-      "+"
-    | "-"
+      "+" (. op = token.val; .)
+    | "-" (. op = token.val; .)
   .
 
-  RelOp
+  RelOp<out string op> (. op = ""; .)
   =
-      "<"
-    | "<="
-    | ">"
-    | ">="
+      "<"  (. op = token.val; .)
+    | "<=" (. op = token.val; .)
+    | ">"  (. op = token.val; .) 
+    | ">=" (. op = token.val; .)
   .
 
-  EqlOp
+  EqlOp<out string op>  (. op = ""; .)
   =
-      "=="
-    | "!="
+      "=="		(. op = token.val; .)
+    | "!="		(. op = token.val; .)
   .
 
 END Calc.
