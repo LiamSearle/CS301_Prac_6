@@ -11,7 +11,7 @@ static int ToInt(bool b) {
 } // ToInt
 
 static bool ToBool(int i) {
-// return false or true according as i is 0 or 1
+// Return false or true according as i is 0 or 1
   return i == 0 ? false : true;
 } // ToBool
 
@@ -57,7 +57,7 @@ static int And(int a, int b) {
 }
 
 static int Eql(int a, int b, string op){
-	 if ( op == "==" ) //oof, inception vibes.
+	 if ( op == "==" ) //oof, inception vibes 
 		return ToInt((a == b));
 	 else if (op == "!=")
 		return ToInt((a != b));
@@ -167,7 +167,7 @@ PRODUCTIONS
     RelExp<out otherValue, out otherType>	
     (. 
 	   type = (type == otherType ? type : 0); 
-	   if (type != 0){ //both sides must be booleans.
+	   if (type != 0){ //both sides must be of the same type.
 		   Value = Eql(Value,otherValue, op);
 		   type = 6; //output of an EqlOp must be boolean 
 	   }else{ 
@@ -185,11 +185,11 @@ PRODUCTIONS
     AddExp<out otherValue, out otherType>	
 	(. 
 	   type = (type == otherType ? type : 0); 
-	   if(type == 6){ //both sides must be booleans.
+	   if(type == 4){ //both sides must be ints.
 		   Value = Rel(Value,otherValue, op);
-		   type = 6; // type of an RelOp will be an int
-	   }else{ 
-		   SemErr("Both sides of a RelOp must be bools"); //Throw errors for statements such as: a = 5 > true;
+		   type = 6; // type of an RelOp will be a boolean
+	   }else{
+		   SemErr("Both sides of a RelOp must be ints"); //Throw errors for statements such as: a = 5 > true;
 	   }
 	.)
   ] 

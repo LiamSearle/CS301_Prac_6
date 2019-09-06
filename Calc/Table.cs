@@ -52,7 +52,7 @@ namespace Calc {
 } // Entry
 
   class Table {
-    static List<Entry> theList = new List<Entry>(); //Symbol Table
+    static List<Entry> symTable = new List<Entry>(); //Symbol Table
     // global variables that can be manipulated in the Parva grammar.
     public static bool dec = false; 
     public static bool check = false; 
@@ -60,7 +60,7 @@ namespace Calc {
 
         public static void ClearTable() {
             // Clears cross-reference table
-            theList.Clear();
+            symTable.Clear();
     } // Table.ClearTable
 
     public static void AddRef(string name, bool declared, int lineRef) {
@@ -68,14 +68,25 @@ namespace Calc {
             // if at a declaration point in the original source program)
             if (declared) 
             { //Not declared (YET)
-                //Adds name to the theList  and then adds the lineRef to the refs list.
-                theList.Add(new Entry(name));
-                theList[theList.Count - 1].refs.Add(lineRef);
+                bool ch = false; //checks if name is in the symTable
+                for (int i = 0; i < symTable.Count; i++)
+                {
+                    if (symTable[i].name == name)
+                    {
+                        ch = true; break;
+                    }
+                }
+                if (!ch)
+                {
+                    //Adds name to the symTable  and then adds the lineRef to the refs list.
+                    symTable.Add(new Entry(name));
+                    symTable[symTable.Count - 1].refs.Add(lineRef);
+                }
             } else
             {  //Already declared
-                for (int i = 0; i < theList.Count; i++)
-                    if(theList[i].name == name)
-                        theList[i].refs.Add(lineRef);
+                for (int i = 0; i < symTable.Count; i++)
+                    if(symTable[i].name == name)
+                        symTable[i].refs.Add(lineRef);
             }
                 
     } // Table.AddRef
@@ -83,7 +94,7 @@ namespace Calc {
     public static void PrintTable() {
     // Prints out all references in the table (eliminate duplicate line numbers)
             string display = "";
-            foreach (Entry x in theList)
+            foreach (Entry x in symTable)
             {
                 if (x.name.Length > 7) //7 be the magic number.
                     display += x.name + "\t\t\t";
@@ -106,9 +117,9 @@ namespace Calc {
         public static int RetrieveValue(string name)
         // Retrieves the value that is associated with the variable in the table
         {
-            for (int i = 0; i < theList.Count; i++)
-                if (theList[i].name == name)
-                    return theList[i].value;
+            for (int i = 0; i < symTable.Count; i++)
+                if (symTable[i].name == name)
+                    return symTable[i].value;
             string msg = "Variable " + name + " has not been declared.";
             throw new Exception(msg);
         }
@@ -116,9 +127,9 @@ namespace Calc {
         public static int RetrieveType(string name)
         // Retrieves the value that is associated with the variable in the table
         {
-            for (int i = 0; i < theList.Count; i++)
-                if (theList[i].name == name)
-                    return (int) theList[i].type;
+            for (int i = 0; i < symTable.Count; i++)
+                if (symTable[i].name == name)
+                    return (int) symTable[i].type;
             string msg = "Variable " + name + " has not been declared.";
             throw new Exception(msg);
         }
@@ -126,12 +137,12 @@ namespace Calc {
         public static void StoreValue(string name, int val, int type)
     // Store the value & type of a variable with the variable
     {
-        for (int i = 0; i < theList.Count; i++)
+        for (int i = 0; i < symTable.Count; i++)
         {
-            if (theList[i].name == name)
+            if (symTable[i].name == name)
             {
-                theList[i].type = (Entry.Type) type;
-                theList[i].value = val;
+                symTable[i].type = (Entry.Type) type;
+                symTable[i].value = val;
                 break;
             }
         }
