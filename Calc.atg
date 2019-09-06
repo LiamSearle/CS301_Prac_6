@@ -25,14 +25,21 @@ static int Add(int a, int b, string op) {
 }
 
 static int Mult(int a, int b, string op) {  
-	if(op == "%")
-		return a%b;
-	else if (op == "*")
+	if(op == "%"){
+		if( b != 0)
+			return a%b;
+		else 
+			throw new Exception("Mod by zero bad"); //Indeed 
+	}else if (op == "*"){
 		return a*b;
-	else if (op == "/") 
-		return a/b;
-	else
-		return -1;//throw error (not an ideal solution, WILL fix)
+	}else if (op == "/") {
+		if(b != 0)
+			return a/b;
+		else 
+			throw new Exception("Division by zero bad");
+	}else{
+		 throw new Exception("Invalid operand for MulOP"); //this should never run (theoretically...)
+	}
 }
 
 static int Or(int a, int b) {
@@ -255,7 +262,7 @@ PRODUCTIONS
   .
 
   Factor<out int Value, out int type> (. Value = 0; type = 0;.)
-  =	  (. string id = "";  Table.check = true; .) //check true since declaration of a variable will not pass through the Factor production
+  =	  (. string id = "";  Table.check = false; .) //check false since declaration of a variable will not pass through the Factor production
       Variable<out id, out type, out Value>			
     | Number<out Value, out type> 
     | "true"			(. Value = 1; type = 6;.)
@@ -267,7 +274,7 @@ PRODUCTIONS
   Variable<out string id, out int type,out int Value>
   = (. type = 0; Value = 0;.)
   identifier  (. id = token.val;
-				 if(!Table.check){ 
+				 if(!Table.check){  //if check false
 					Value = Table.RetrieveValue(token.val); 
 					type = Table.RetrieveType(token.val);
 				 }else{ 
