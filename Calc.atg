@@ -100,7 +100,7 @@ IGNORE CHR(0) .. CHR(31)
 
 PRODUCTIONS  
   Calc				
-  =  (. int Value = 0; .)
+  =  (. Table.ClearTable(); int Value = 0; .)
   { Print<out Value>   
   | Assignment<out Value>  (. Console.WriteLine(Value.ToString()); .) 
   } "quit" (. Table.PrintTable(); .)
@@ -109,9 +109,10 @@ PRODUCTIONS
   Assignment<out int Value>
   = (. Table.dec = true; Table.check = true; string id = ""; int type = 0;.)
   Variable<out id, out type, out Value> (. Table.dec = false; Table.check = false; .) //Set global vars back to false
-  "="
+  "=" (. bool exists = Table.VarExists(id); .) //VarExists 
   Expression<out Value, out type> 
-  (. Table.StoreValue(id, Value, type); .)
+  (.  Console.WriteLine("!!!!!!!!" + exists);
+  .)
   SYNC ";"
   .
 

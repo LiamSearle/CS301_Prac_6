@@ -1,38 +1,12 @@
 // Handle cross reference table for Parva
-// Matthew Lewis, Liam Searle, Makungu Chansa (Absent) - 2019 
+// Matthew Lewis, Liam Searle , Makungu Chansa  - 2019 
 
 using Library;
 using System;
 using System.Collections.Generic;
 
 namespace Calc {
-    /*
-    class Types //won't be using this for arrays yet.
-    {
-        public const int // Identifier (and expression) types
-        noType = 0, // Numbering is significant
-        nullType = 2, // array types are denoted by these numbers + 1
-        intType = 4, //
-        boolType = 6, //
-        voidType = 8;
-        static List<string> typeNames = new List<string>();
-        static int nextType = 0;
 
-        public static int AddType(string name)
-        {
-            // Generate (and return) next type id, and add to list of type names
-            int thisType = nextType;
-            nextType += 2;
-            typeNames.Add(name); // simple
-            typeNames.Add(name + "[]"); // matching array
-            return thisType;
-        } // Types.AddType
-        public static string Name(int type)
-        {
-            return typeNames[type];
-        } // Types.Name
-    } // end Types 
-} */
   class Entry {                      // Cross reference table entries
     public enum Type
     { //using the same spacing as above for future proofing.
@@ -51,17 +25,25 @@ namespace Calc {
     }
 } // Entry
 
-  class Table {
-    static List<Entry> symTable = new List<Entry>(); //Symbol Table
-    // global variables that can be manipulated in the Parva grammar.
-    public static bool dec = false; 
-    public static bool check = false; 
+    class Table {
+        static List<Entry> symTable = new List<Entry>(); //Symbol Table
+                                                         // global variables that can be manipulated in the Parva grammar.
+        public static bool dec = false;
+        public static bool check = false;
 
 
         public static void ClearTable() {
             // Clears cross-reference table
             symTable.Clear();
-    } // Table.ClearTable
+        } // Table.ClearTable
+
+
+    public static bool VarExists(string name) {
+            for (int i = 0; i < symTable.Count; i++)
+                if (symTable[i].name == name)
+                    return true;
+            return false;
+        }
 
     public static void AddRef(string name, bool declared, int lineRef) {
             // Enters name if not already there, and then adds another line reference (negative
@@ -69,14 +51,9 @@ namespace Calc {
             if (declared) 
             { //Not declared (YET)
                 bool ch = false; //checks if name is in the symTable
-                for (int i = 0; i < symTable.Count; i++)
-                {
-                    if (symTable[i].name == name)
-                    {
-                        ch = true; break;
-                    }
-                }
-                if (!ch)
+                if(VarExists(name))
+                    ch = true;
+                if (ch == false)
                 {
                     //Adds name to the symTable  and then adds the lineRef to the refs list.
                     symTable.Add(new Entry(name));
