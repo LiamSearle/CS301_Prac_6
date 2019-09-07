@@ -1,4 +1,4 @@
-// Handle cross reference table for Parva
+// Handle cross reference table for Calc
 // Matthew Lewis, Liam Searle , Makungu Chansa  - 2019 
 
 using Library;
@@ -26,7 +26,7 @@ namespace Calc {
 } // Entry
 
     class Table {
-        static List<Entry> symTable = new List<Entry>(); //Symbol Table
+        public static List<Entry> symTable = new List<Entry>(); //Symbol Table
                                                          // global variables that can be manipulated in the Parva grammar.
         public static bool dec = false;
         public static bool check = false;

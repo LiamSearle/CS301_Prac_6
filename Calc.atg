@@ -43,17 +43,21 @@ static int Mult(int a, int b, string op) {
 }
 
 static int Or(int a, int b) {
-	 bool c = ToBool(a);
-	 bool d = ToBool(b);
-	 bool e = c || d;
-	 return ToInt(e);
+	 bool x = ToBool(a);
+	 bool y = ToBool(b);
+	 if (x)
+		return 1;
+	 else
+		return ToInt(y);
 }
 
 static int And(int a, int b) {
-	 bool c = ToBool(a);
-	 bool d = ToBool(b);
-	 bool e = c && d;
-	 return ToInt(e);
+	 bool x = ToBool(a);
+	 bool y = ToBool(b);
+	 if (x)
+		return ToInt(y);
+	 else 
+		return 0;
 }
 
 static int Eql(int a, int b, string op){
@@ -107,11 +111,19 @@ PRODUCTIONS
   .
 
   Assignment<out int Value>
-  = (. Table.dec = true; Table.check = true; string id = ""; int type = 0;.)
+  = (. Table.dec = true; Table.check = true; string id = ""; int type = 0; int otherType = 0;.)
   Variable<out id, out type, out Value> (. Table.dec = false; Table.check = false; .) //Set global vars back to false
-  "=" (. bool exists = Table.VarExists(id); .) //VarExists 
-  Expression<out Value, out type> 
-  (.  Console.WriteLine("!!!!!!!!" + exists);
+  "=" 
+  Expression<out Value, out otherType> 
+  (.  //Store here
+	  if(type == 0) {
+      //Variable has just been declared for first time
+			Table.StoreValue(id, Value, otherType);
+	  } else if(type == otherType){
+			Table.StoreValue(id, Value, type);
+	  } else {
+			throw new Exception("Type mismatch bad");
+	  }
   .)
   SYNC ";"
   .
@@ -278,8 +290,11 @@ PRODUCTIONS
 				 if(!Table.check){  //if check false
 					Value = Table.RetrieveValue(token.val); 
 					type = Table.RetrieveType(token.val);
-				 }else{ 
+				 }else{ //if check true
 					 Table.AddRef(token.val, Table.dec, token.line); //reference added without value evaluated yet.
+					 try{
+						type = Table.RetrieveType(token.val); //attempts to retrieve the type of the identifier (should be zero if it's undefined)
+					 }catch(Exception e){ type = 0;}//just catch the Exception, do nothing with it.
 				 }
 			  .)
   .
